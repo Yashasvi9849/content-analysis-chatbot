@@ -1,0 +1,17 @@
+[
+  {
+    "name": "refund_policy",
+    "document": "Customers can request a refund within 30 days of purchase if they provide a valid receipt.",
+    "question": "What is the refund window?",
+    "expected_answer_contains": "30 days",
+    "expected_source_contains": "refund"
+  },
+  {
+    "name": "support_response_time",
+    "document": "Premium customers receive priority email support with a target first response time of four business hours.",
+    "question": "What is the premium support response time?",
+    "expected_answer_contains": "four business hours",
+    "expected_source_contains": "Premium customers"
+  }
+]
+

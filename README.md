@@ -121,6 +121,27 @@ Example chat request:
 }
 ```
 
+## Testing
+
+The backend includes deterministic tests that do not call Ollama. They use a fake Ollama client and temporary SQLite databases.
+
+Run tests from the backend folder:
+
+```bash
+cd backend
+source .venv/bin/activate
+pytest
+```
+
+Test coverage includes:
+
+- text chunking
+- text extraction for `.txt` and `.docx`
+- unsupported file handling
+- vector search and keyword boost
+- `/health`, `/ingest`, `/chat`, `/documents`
+- regression QA fixtures in `backend/tests/fixtures/qa_regression.json`
+
 ## What Has Been Tested
 
 - Backend health endpoint
@@ -163,4 +184,3 @@ Files that should not be pushed:
 - Add authentication if deploying for multiple users
 - Add Docker setup for easier deployment
 - Deploy frontend and backend to the cloud
-
