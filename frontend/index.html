@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Content Analysis chatbot</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Documents">
+        <div class="brand">
+          <div class="brand-mark">CA</div>
+          <div>
+            <h1>Content Analysis chatbot</h1>
+            <p id="apiStatus" class="status status-checking">Checking backend</p>
+          </div>
+        </div>
+
+        <section class="panel upload-panel">
+          <div class="panel-header">
+            <h2>Knowledge Base</h2>
+            <button id="refreshDocuments" class="icon-button" type="button" title="Refresh documents">↻</button>
+          </div>
+
+          <label class="drop-zone" for="fileInput">
+            <input id="fileInput" type="file" multiple accept=".txt,.md,.pdf,.docx" />
+            <span class="drop-title">Drop files here</span>
+            <span class="drop-meta">PDF, DOCX, TXT, MD</span>
+          </label>
+
+          <div class="upload-actions">
+            <button id="uploadButton" class="primary-button" type="button">Upload</button>
+            <button id="clearButton" class="ghost-button danger" type="button">Clear</button>
+          </div>
+        </section>
+
+        <section class="panel documents-panel">
+          <div class="panel-header">
+            <h2>Documents</h2>
+            <span id="documentCount" class="count">0</span>
+          </div>
+          <div id="documentsList" class="documents-list" aria-live="polite"></div>
+        </section>
+      </aside>
+
+      <main class="chat-area">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">Local RAG Workspace</p>
+            <h2>Ask your content</h2>
+          </div>
+          <div class="model-pills">
+            <span id="chatModel">llama3.1</span>
+            <span id="embedModel">nomic-embed-text</span>
+          </div>
+        </header>
+
+        <section id="messages" class="messages" aria-live="polite">
+          <article class="message assistant-message">
+            <div class="avatar">AI</div>
+            <div class="bubble">
+              <p>Ready when your documents are.</p>
+            </div>
+          </article>
+        </section>
+
+        <form id="chatForm" class="composer">
+          <div class="top-k-control">
+            <label for="topK">Sources</label>
+            <input id="topK" type="range" min="1" max="8" value="4" />
+            <output id="topKValue" for="topK">4</output>
+          </div>
+          <div class="composer-row">
+            <textarea id="messageInput" rows="1" placeholder="Ask about your uploaded content"></textarea>
+            <button id="sendButton" class="send-button" type="submit" title="Send">➜</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+
