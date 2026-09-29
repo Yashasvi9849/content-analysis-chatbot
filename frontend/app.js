@@ -1,5 +1,9 @@
 const API_BASE_URL = "http://127.0.0.1:8000";
 
+let apiKey = "";
+const authForm = document.querySelector("#authForm");
+const apiKeyInput = document.querySelector("#apiKey");
+
 const apiStatus = document.querySelector("#apiStatus");
 const chatModel = document.querySelector("#chatModel");
 const embedModel = document.querySelector("#embedModel");
@@ -22,7 +26,10 @@ function setStatus(kind, text) {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  if (!apiKey) throw new Error("Enter your API key and select Connect first.");
+  const headers = new Headers(options.headers);
+  headers.set("X-API-Key", apiKey);
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(payload.detail || `Request failed with ${response.status}`);
@@ -37,7 +44,7 @@ async function loadHealth() {
     chatModel.textContent = health.chat_model || "chat model";
     embedModel.textContent = health.embedding_model || "embedding model";
   } catch (error) {
-    setStatus("error", "Backend offline");
+    setStatus("error", error.message);
   }
 }
 
@@ -225,6 +232,11 @@ dropZone.addEventListener("drop", (event) => {
   fileInput.files = event.dataTransfer.files;
 });
 
-loadHealth();
-loadDocuments();
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  apiKey = apiKeyInput.value;
+  apiKeyInput.value = "";
+  await loadHealth();
+  await loadDocuments();
+});
 

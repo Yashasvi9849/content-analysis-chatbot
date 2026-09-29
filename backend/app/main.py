@@ -3,11 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
+from app.security import require_api_key
 from app.ollama_client import OllamaClient, OllamaError
 from app.text_processing import chunk_text, extract_text
 from app.vector_store import VectorStore
@@ -23,13 +24,13 @@ ollama = OllamaClient(
 )
 store = VectorStore(settings.database_path)
 
-app = FastAPI(title="Content Analysis chatbot", version="0.1.0")
+app = FastAPI(title="Content Analysis chatbot", version="0.1.0", dependencies=[Depends(require_api_key)])
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "X-API-Key"],
 )
 
 

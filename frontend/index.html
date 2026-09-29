@@ -13,9 +13,16 @@
           <div class="brand-mark">CA</div>
           <div>
             <h1>Content Analysis chatbot</h1>
-            <p id="apiStatus" class="status status-checking">Checking backend</p>
+            <p id="apiStatus" class="status status-checking">Enter API key to connect</p>
           </div>
         </div>
+
+        <form id="authForm" class="panel">
+          <label for="apiKey">API key</label>
+          <input id="apiKey" type="password" autocomplete="off" required placeholder="Enter your API key" />
+          <button class="primary-button" type="submit">Connect</button>
+          <p>Your key is cleared when you reload this page.</p>
+        </form>
 
         <section class="panel upload-panel">
           <div class="panel-header">

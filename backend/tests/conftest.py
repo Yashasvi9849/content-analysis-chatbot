@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pydantic import SecretStr
 from fastapi.testclient import TestClient
 
 from app import main
@@ -36,6 +37,7 @@ class FakeOllama:
 
 @pytest.fixture()
 def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    monkeypatch.setattr(main.settings, "api_key", SecretStr("test-key-" + "a" * 32))
     upload_dir = tmp_path / "uploads"
     upload_dir.mkdir()
 
@@ -45,6 +47,6 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(main.settings, "chunk_size", 300)
     monkeypatch.setattr(main.settings, "chunk_overlap", 50)
 
-    with TestClient(main.app) as test_client:
+    with TestClient(main.app, headers={"X-API-Key": "test-key-" + "a" * 32}) as test_client:
         yield test_client
 

@@ -79,6 +79,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+# Set API_KEY in .env before starting (see Security below).
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -181,6 +182,26 @@ Files that should not be pushed:
 - Add chat history
 - Improve retrieval ranking and source filtering
 - Add document-specific search filters
-- Add authentication if deploying for multiple users
+- Add individual accounts and per-user document permissions
 - Add Docker setup for easier deployment
 - Deploy frontend and backend to the cloud
+
+## Security
+
+All data endpoints and `/health` require the `X-API-Key` header. Generate a random
+key with `python3 -c "import secrets; print(secrets.token_urlsafe(32))"` and set
+`API_KEY` in `backend/.env`. An empty key or one shorter than 32 characters blocks
+API access with HTTP 503; missing or incorrect request keys return HTTP 401.
+Never commit your real key. Restart the backend after changing it.
+
+Enter that key in the frontend's API key field and select **Connect**. The browser
+keeps it only in memory until the page reloads. In Swagger `/docs`, use **Authorize**
+to supply it. API documentation remains public but cannot access data without a key.
+Command-line clients must send `X-API-Key: <your-key>` on each request.
+
+Browser access defaults to `http://127.0.0.1:5173` and `http://localhost:5173`.
+Set `ALLOWED_ORIGINS` to a JSON array of your exact frontend origins if needed.
+Serve the frontend over HTTP locally rather than opening it as a file.
+Use HTTPS when hosting beyond localhost so the key and documents are encrypted
+in transit. This shared key grants access to the entire knowledge base, including
+deletion; it does not provide separate accounts or document permissions.

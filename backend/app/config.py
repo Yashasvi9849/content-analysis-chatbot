@@ -1,10 +1,13 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    api_key: SecretStr = SecretStr("")
+    allowed_origins: list[str] = ["http://127.0.0.1:5173", "http://localhost:5173"]
     ollama_base_url: str = "http://localhost:11434"
     ollama_chat_model: str = "llama3.1"
     ollama_embed_model: str = "nomic-embed-text"
