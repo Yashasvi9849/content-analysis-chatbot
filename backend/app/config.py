@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ollama_embed_model: str = "nomic-embed-text"
     database_path: Path = Path("./data/rag.sqlite3")
     upload_dir: Path = Path("./data/uploads")
+    max_upload_bytes: int = Field(default=10 * 1024 * 1024, gt=0)
+    max_upload_files: int = Field(default=10, gt=0)
     chunk_size: int = 900
     chunk_overlap: int = 150
 

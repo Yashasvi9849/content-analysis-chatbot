@@ -32,7 +32,11 @@ async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(payload.detail || `Request failed with ${response.status}`);
+    const detail = payload.detail;
+    const message = Array.isArray(detail)
+      ? detail.map((issue) => issue.msg).filter(Boolean).join("; ")
+      : typeof detail === "string" ? detail : "";
+    throw new Error(message || `Request failed with ${response.status}`);
   }
   return payload;
 }

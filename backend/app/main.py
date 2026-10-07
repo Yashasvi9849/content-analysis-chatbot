@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.config import get_settings
 from app.security import require_api_key
@@ -35,8 +35,13 @@ app.add_middleware(
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1)
+    message: str = Field(..., min_length=1, max_length=8000)
     top_k: int = Field(default=5, ge=1, le=12)
+
+    @field_validator("message", mode="before")
+    @classmethod
+    def trim_message(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
 
 
 class Source(BaseModel):
@@ -65,22 +70,42 @@ def health() -> dict:
 
 @app.post("/ingest")
 async def ingest(files: list[UploadFile] = File(...)) -> dict:
+    if len(files) > settings.max_upload_files:
+        raise HTTPException(status_code=413, detail=f"Upload at most {settings.max_upload_files} files at a time.")
+    for upload in files:
+        suffix = Path(upload.filename or "").suffix.lower()
+        if suffix not in {".txt", ".md", ".pdf", ".docx"}:
+            raise HTTPException(status_code=400, detail="Supported file types: TXT, MD, PDF, DOCX.")
+        if upload.size is not None and upload.size > settings.max_upload_bytes:
+            raise HTTPException(status_code=413, detail=f"Each file must be at most {settings.max_upload_bytes} bytes.")
+
     ingested = []
     for upload in files:
         original_name = Path(upload.filename or "upload").name
-        saved_name = f"{uuid4().hex}_{original_name}"
+        saved_name = f"{uuid4().hex}{Path(original_name).suffix.lower()}"
         saved_path = settings.upload_dir / saved_name
-        saved_path.write_bytes(await upload.read())
-
+        completed = False
         try:
+            total = 0
+            with saved_path.open("xb") as destination:
+                while block := await upload.read(64 * 1024):
+                    total += len(block)
+                    if total > settings.max_upload_bytes:
+                        raise HTTPException(status_code=413, detail=f"Each file must be at most {settings.max_upload_bytes} bytes.")
+                    destination.write(block)
             text = extract_text(saved_path)
             chunks = chunk_text(text, settings.chunk_size, settings.chunk_overlap)
             if not chunks:
                 raise ValueError("No readable text found in file.")
             embeddings = [ollama.embed(chunk) for chunk in chunks]
             document_id = store.add_document(original_name, saved_path, chunks, embeddings)
+            completed = True
         except (ValueError, OllamaError) as exc:
             raise HTTPException(status_code=400, detail=f"{original_name}: {exc}") from exc
+        finally:
+            if not completed:
+                saved_path.unlink(missing_ok=True)
+            await upload.close()
 
         ingested.append(
             {

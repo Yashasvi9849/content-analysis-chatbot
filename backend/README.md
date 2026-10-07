@@ -92,3 +92,17 @@ Serve the frontend over HTTP locally rather than opening it as a file.
 Use HTTPS when hosting beyond localhost so the key and documents are encrypted
 in transit. This shared key grants access to the entire knowledge base, including
 deletion; it does not provide separate accounts or document permissions.
+
+## Input limits
+
+Uploads accept TXT, MD, PDF, and DOCX files, up to 10 files per request and
+10 MiB per file by default. Configure positive `MAX_UPLOAD_FILES` and
+`MAX_UPLOAD_BYTES` values in `.env`. Oversized uploads return HTTP 413.
+Files that fail ingestion are removed from the upload directory. If a later file
+fails during processing, earlier successfully indexed files remain available.
+These limits apply during ingestion, after multipart parsing; use request-body
+limits at your reverse proxy for protection before the server receives uploads.
+
+Chat messages are trimmed and must contain 1–8,000 characters. Invalid messages
+return HTTP 422 without calling Ollama, and the frontend displays the validation
+message.
